@@ -2,4 +2,7 @@ venv/
 .vscode/
 __pycache__/
 .env
+
+frontend/node_modules/
+
 README.md
