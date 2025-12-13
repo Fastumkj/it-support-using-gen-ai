@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 import json
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_community.vectorstores import Chroma
@@ -11,7 +12,9 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data')
 KB_PATH = os.path.join(DATA_DIR, 'knowledge_base')
 ASSET_PATH = os.path.join(DATA_DIR, 'assets.json')
 
-HF_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2" 
+load_dotenv(os.path.join(os.path.dirname(__file__), '../../..', '.env'))
+HF_MODEL_NAME = os.getenv("HF_MODEL_NAME")
+print("HuggingFace Mode: ", HF_MODEL_NAME)
 
 def load_structured_assets():
     """Loads mock IT asset data from the JSON file."""
@@ -56,7 +59,7 @@ if __name__ == "__main__":
     
     vector_db = setup_chroma_db()
     
-    query = "Why is my laptop mouse not working and how do I fix it?"
+    query = "Why is my hardware lost and do I contact?"
     #test retrieval
     results = vector_db.similarity_search(query, k=1)
     print("\n--- RAG Test Result ---")

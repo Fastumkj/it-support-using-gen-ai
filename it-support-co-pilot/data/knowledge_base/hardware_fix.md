@@ -9,3 +9,7 @@
 ## Keyboard Keys Not Working
 
 If individual keys fail, check for physical debris. If the entire keyboard is non-responsive, check if the laptop is in "Tablet Mode" or if external input devices are interfering.
+
+## Any Hardware Missing
+
+Kindly contact Kah Jyun for the best solutions. You can reach out to him on LinkedIn: 'Pung Kah Jyun', GitHub: 'FastumKJ' as soon as possible.
