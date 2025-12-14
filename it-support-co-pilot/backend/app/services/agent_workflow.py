@@ -1,11 +1,12 @@
+import os
 import json
 from typing import Dict, Any, List
 from langchain_core.vectorstores import VectorStore
 from ..models.schemas import QueryRequest, Resolution, AgentClassification
-# Assuming we will use a self-hosted or API LLM (e.g., HuggingFace Inference API, or a mock)
-from langchain_community.llms import HuggingFaceHub 
+from langchain_core.runnables import RunnableLambda
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
+from langchain_openai import AzureChatOpenAI
 
 # --- 1. MOCK SERVICE INTEGRATION ---
 def mock_jira_api(classification: AgentClassification, user_id: str) -> str:
@@ -36,25 +37,40 @@ def run_support_workflow(
     # ----------------------------------------------------
     # STEP 1: Initialization (LLM Setup)
     # ----------------------------------------------------
-    
+
+    HF_API_KEY = os.getenv("HF_API_KEY")
+    print(f"Using HF API Key: ", HF_API_KEY)
+
     #using free model (but will take longer time) 
     try:
         # Use a model that is good at instruction following, like a fine-tuned Mistral
-        llm = HuggingFaceHub(
-            repo_id="mistralai/Mistral-7B-Instruct-v0.2", 
-            task="text-generation", 
-            # Note: Inference API can be slow. For faster results, consider GPT-3.5 or a local model.
+        llm = AzureChatOpenAI(
+            openai_api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
+            azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+            openai_api_key=os.getenv("OPENAI_API_KEY"),
+            azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
+            temperature=0.7,
+            max_tokens=512 # Use max_tokens instead of max_new_tokens for OpenAI
         )
-    except Exception as e:
-        print(f"Warning: HuggingFace LLM failed to initialize. Using a simple mock LLM.")
-        # Fallback to a mock LLM for testing the logic flow without internet dependency
-        class MockLLM:
-            def invoke(self, prompt):
-                if "CLASSIFY" in prompt:
-                    return '{"category": "General", "asset_id": "N/A"}'
-                return "Mock resolution: Please try restarting your device."
-        llm = MockLLM()
 
+    except Exception as e:
+        # ⭐ FIX 1: Print the detailed error message for diagnosis
+        print(f"Warning: HuggingFace LLM failed to initialize. Using a simple mock LLM. Details: {e}") 
+
+        class MockLLM:
+            def __init__(self):
+                pass
+            
+            def invoke(self, prompt: str):
+                if "CLASSIFY" in prompt and "Structured Asset Data:" in prompt:
+                    # ⭐ FIX 2: Ensure the Mock LLM returns the necessary JSON for the Classifier Agent
+                    return '{"category": "Network", "asset_id": "LAP-12345"}' 
+                
+                # The Resolver Agent mock output should also be a non-JSON string
+                return "Mock resolution: Please try restarting your device. If the issue persists, a high-priority ticket has been automatically created. (This is a mock output.)"
+            
+        mock_instance = MockLLM()
+        llm = RunnableLambda(mock_instance.invoke)
 
     # ----------------------------------------------------
     # STEP 2: Classifier Agent (Structured Output for Optimization)
