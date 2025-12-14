@@ -1,4 +1,8 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from .models.schemas import QueryRequest, Resolution
@@ -27,6 +31,15 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+#add the CORSMiddleware to allow all origins (ok in dev, need restrict in prod)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],  
+    allow_headers=["*"], 
+)
+
 @app.post("/resolve", response_model=Resolution)
 async def resolve_issue(query_data: QueryRequest):
     """
@@ -34,6 +47,8 @@ async def resolve_issue(query_data: QueryRequest):
     from the Multi-Agent workflow.
     """
     try:
+        print(f"Received query: {query_data.user_query} from user {query_data.user_id}")
+
         #pass the global resources and the user query to the core Agent logic
         resolution_result = run_support_workflow(
             user_query=query_data.user_query,
