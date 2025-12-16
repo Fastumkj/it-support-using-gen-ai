@@ -41,16 +41,14 @@ def run_support_workflow(
     HF_API_KEY = os.getenv("HF_API_KEY")
     print(f"Using HF API Key: ", HF_API_KEY)
 
-    #using free model (but will take longer time) 
     try:
-        # Use a model that is good at instruction following, like a fine-tuned Mistral
         llm = AzureChatOpenAI(
             openai_api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
             azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
             openai_api_key=os.getenv("OPENAI_API_KEY"),
             azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
             temperature=0.7,
-            max_tokens=512 # Use max_tokens instead of max_new_tokens for OpenAI
+            max_tokens=512
         )
 
     except Exception as e:
@@ -77,10 +75,10 @@ def run_support_workflow(
     # ----------------------------------------------------
     print("Agent 1: Running Classification...")
 
-    # We tell the LLM exactly what format to return using Pydantic (AgentClassification)
+    #we tell the LLM exactly what format to return using Pydantic (AgentClassification)
     parser = JsonOutputParser(pydantic_object=AgentClassification)
     
-    # This prompt forces the LLM to categorize the issue and find the asset ID.
+    #this prompt forces the LLM to categorize the issue and find the asset ID.
     classification_prompt = PromptTemplate(
         template="""CLASSIFY the user's issue and IDENTIFY the asset_id. 
         Focus on categories: Hardware, Network, Access, Software, General.
