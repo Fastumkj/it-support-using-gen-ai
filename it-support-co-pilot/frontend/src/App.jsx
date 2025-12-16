@@ -7,9 +7,6 @@ function App() {
       <div className="App">
         <ChatInterface />
       </div>
-      <div className="bg-red-500 min-h-screen">
-        <ChatInterface />
-      </div>
     </div>
   );
 }
